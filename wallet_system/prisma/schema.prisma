@@ -1,0 +1,62 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  email String @unique
+  hash  String
+
+  firstName String
+  lastName  String
+  wallet    Wallet @relation(fields: [walletId], references: [id])
+  walletId  Int    @unique
+
+  @@map("users")
+}
+
+model Wallet {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  balance      Float         @default(0)
+  user         User?
+  transactions Transaction[] // This indicates that a Wallet can have many Transactions
+
+  @@map("wallets")
+}
+
+model Transaction {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now()) // Timestamp when the transaction was created
+  updatedAt DateTime @updatedAt // Timestamp for the last update
+  type      String // Type of transaction e.g., 'deposit', 'withdrawal'
+  amount    Float // The monetary amount involved in the transaction
+  walletId  Int // Foreign key to reference the Wallet
+  wallet    Wallet   @relation(fields: [walletId], references: [id]) // Relation to the Wallet model
+
+  @@map("transactions")
+}
+
+model BlacklistedToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  createdAt DateTime @default(now())
+
+  @@map("blacklisted_tokens")
+}
